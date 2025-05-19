@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>いんぬ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- MapLibre GL CSS -->
+  <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
+
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    #infoPanel {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 40%;
+      max-width: 500px;
+      height: 100%;
+      background: #fff;
+      box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      transform: translateX(100%);
+      transition: transform 0.3s ease;
+      z-index: 10;
+    }
+
+    #infoPanel.active {
+      transform: translateX(0);
+    }
+
+    .country-title {
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    .slide {
+      display: flex;
+      margin-bottom: 20px;
+      background: #f5f5f5;
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .slide img {
+      width: 150px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-right: 15px;
+    }
+
+    .slide-content {
+      flex: 1;
+    }
+
+    .breed-title {
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+<div id="infoPanel"></div>
+
+<!-- MapLibre GL JS -->
+<script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+
+<script>
+  const dogData = {
+    japan: {
+      country: '日本',
+      dogs: [
+        {
+          breed: '秋田犬',
+          size: '大型犬',
+          group: '原始の犬/スピッツ',
+          description: '忠誠心が高く、落ち着きがある。飼い主に強く従う性質がある。',
+          image: 'akita.jpg'
+        },
+        {
+          breed: '柴犬',
+          size: '中型犬',
+          group: '原始の犬/スピッツ',
+          description: '警戒心が強く、独立心がある。日本原産の人気犬種。',
+          image: 'shiba.jpg'
+        }
+      ]
+    },
+    germany: {
+      country: 'ドイツ',
+      dogs: [
+        {
+          breed: 'ジャーマン・シェパード・ドッグ',
+          size: '大型犬',
+          group: '使役犬',
+          description: '非常に知能が高く、訓練性に優れる。警察犬や介助犬としても活躍。',
+          image: 'germanshepherd.jpg'
+        },
+        {
+          breed: 'ダックスフンド',
+          size: '小型犬',
+          group: 'テリア/ダックス',
+          description: '胴長短足が特徴的。好奇心旺盛で活発な性格。',
+          image: 'dachshund.jpg'
+        }
+      ]
+    },
+    uk: {
+      country: 'イギリス',
+      dogs: [
+        {
+          breed: 'ラブラドール・レトリーバー',
+          size: '大型犬',
+          group: '鳥猟犬',
+          description: '温厚で知能が高く、家庭犬や盲導犬として世界中で人気。',
+          image: 'labrador.jpg'
+        },
+        {
+          breed: 'ゴールデン・レトリーバー',
+          size: '大型犬',
+          group: '鳥猟犬',
+          description: 'フレンドリーで忍耐強く、家庭向き。訓練にもよく応じる。',
+          image: 'golden.jpg'
+        },
+        {
+          breed: 'ボーダー・コリー',
+          size: '中型犬',
+          group: '牧羊犬',
+          description: '非常に賢くエネルギッシュ。作業能力が高く、競技向け。kawaii',
+          image: 'bordercollie.jpg'
+        },
+        {
+          breed: 'ジャック・ラッセル・テリア',
+          size: '小型犬',
+          group: 'テリア/ダックス',
+          description: '活発で好奇心旺盛。小さいがエネルギーに満ちている。',
+          image: 'jackrussell.jpg'
+        },
+        {
+          breed: 'イングリッシュ・コッカー・スパニエル',
+          size: '中型犬',
+          group: '鳥猟犬',
+          description: '優しい性格で家庭犬向き。長い耳が特徴的。',
+          image: 'englishcocker.jpg'
+        },
+        {
+          breed: 'ブルドッグ',
+          size: '中型犬',
+          group: 'その他',
+          description: '頑固だが愛嬌があり、短頭の顔が特徴的。',
+          image: 'bulldog.jpg'
+        },
+        {
+          breed: 'ビーグル',
+          size: '中型犬',
+          group: '嗅覚/視覚ハウンド',
+          description: '嗅覚が非常に優れ、好奇心旺盛で遊び好き。',
+          image: 'beagle.jpg'
+        },
+        {
+          breed: 'ウエスト・ハイランド・ホワイト・テリア',
+          size: '小型犬',
+          group: 'テリア/ダックス',
+          description: '白くてふわふわの毛が特徴。陽気で明るい性格。',
+          image: 'westie.jpg'
+        },
+        {
+          breed: 'スコティッシュ・テリア',
+          size: '小型犬',
+          group: 'テリア/ダックス',
+          description: '短足でしっかりした体格。独立心が強い。',
+          image: 'scottishterrier.jpg'
+        },
+        {
+          breed: 'キング・チャールズ・スパニエル',
+          size: '小型犬',
+          group: '愛玩犬',
+          description: '優雅で愛らしい外見。静かで甘えん坊。',
+          image: 'kingcharles.jpg'
+        }
+      ]
+    }
+  };
+
+  const map = new maplibregl.Map({
+    container: 'map',
+    style: 'https://demotiles.maplibre.org/style.json',
+    center: [139.7671, 35.6812],
+    zoom: 2
+  });
+
+  function addMarker(lng, lat, countryKey) {
+    const el = document.createElement('div');
+    el.className = 'marker';
+
+    el.style.backgroundImage = 'url("mappin.png")';
+    el.style.backgroundSize = 'contain';
+    el.style.backgroundRepeat = 'no-repeat';
+    el.style.width = '60px';
+    el.style.height = '60px';
+    el.style.cursor = 'pointer';
+
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showInfo(countryKey);
+    });
+
+    new maplibregl.Marker(el)
+      .setLngLat([lng, lat])
+      .addTo(map);
+  }
+
+  addMarker(139.6917, 35.6895, 'japan');
+  addMarker(13.4050, 52.5200, 'germany');
+  addMarker(-0.1276, 51.5072, 'uk');
+
+  function showInfo(countryKey) {
+    const panel = document.getElementById('infoPanel');
+    const data = dogData[countryKey];
+    panel.classList.add('active');
+
+    let html = `<div class="country-title">${data.country}</div>`;
+    data.dogs.forEach(dog => {
+      html += `
+        <div class="slide">
+          <img src="images/${dog.image}" alt="${dog.breed}">
+          <div class="slide-content">
+            <div class="breed-title">${dog.breed}</div>
+            <div>サイズ：${dog.size}</div>
+            <div>グループ：${dog.group}</div>
+            <div>特徴：${dog.description}</div>
+          </div>
+        </div>`;
+    });
+
+    panel.innerHTML = html;
+  }
+
+  map.on('click', () => {
+    const panel = document.getElementById('infoPanel');
+    panel.classList.remove('active');
+    panel.innerHTML = '';
+  });
+</script>
+
+</body>
+</html>

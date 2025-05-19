@@ -1,0 +1,27 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+.dog-card {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 10px;
+}
+
+.dog-card img {
+  width: 100px;
+  height: auto;
+  border-radius: 8px;
+}
+
+.dog-info {
+  flex: 1;
+}
