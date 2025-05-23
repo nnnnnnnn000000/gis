@@ -29,7 +29,7 @@
       width: 40%;
       max-width: 500px;
       height: 100%;
-      background: #abffe1;
+      background: #fff;
       box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
       padding: 20px;
       box-sizing: border-box;
@@ -74,6 +74,25 @@
       font-size: 16px;
       margin-bottom: 5px;
     }
+
+    #filterButtons {
+      margin-bottom: 10px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    #filterButtons button {
+      padding: 5px 10px;
+      background-color: #eee;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #filterButtons button:hover {
+      background-color: #ddd;
+    }
   </style>
 </head>
 <body>
@@ -85,117 +104,52 @@
 <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
 
 <script>
-  const dogData = {
+  let currentCountry = null;
+  let currentDogs = [];
+
+  const countryData = {
     japan: {
-      country: '日本',
+      title: '日本',
       dogs: [
         {
-          breed: '秋田犬',
+          name: '秋田犬',
           size: '大型犬',
           group: '原始の犬/スピッツ',
-          description: '忠誠心が高く、落ち着きがある。飼い主に強く従う性質がある。',
+          features: '忠誠心が強く、家族に対してとても愛情深い。警戒心も強く、番犬にも向く。',
           image: 'akita.jpg'
         },
-        {
-          breed: '柴犬',
-          size: '中型犬',
-          group: '原始の犬/スピッツ',
-          description: '警戒心が強く、独立心がある。日本原産の人気犬種。',
-          image: 'shiba.jpg'
-        }
+        // 他の日本の犬種をここに追加可能
       ]
     },
     germany: {
-      country: 'ドイツ',
+      title: 'ドイツ',
       dogs: [
         {
-          breed: 'ジャーマン・シェパード・ドッグ',
+          name: 'ジャーマン・シェパード',
           size: '大型犬',
           group: '使役犬',
-          description: '非常に知能が高く、訓練性に優れる。警察犬や介助犬としても活躍。',
-          image: 'germanshepherd.jpg'
-        },
-        {
-          breed: 'ダックスフンド',
-          size: '小型犬',
-          group: 'テリア/ダックス',
-          description: '胴長短足が特徴的。好奇心旺盛で活発な性格。',
-          image: 'dachshund.jpg'
+          features: '非常に賢く忠実で、警察犬や盲導犬としても活躍。',
+          image: 'gsd.jpg'
         }
       ]
     },
     uk: {
-      country: 'イギリス',
+      title: 'イギリス',
       dogs: [
         {
-          breed: 'ラブラドール・レトリーバー',
-          size: '大型犬',
-          group: '鳥猟犬',
-          description: '温厚で知能が高く、家庭犬や盲導犬として世界中で人気。',
-          image: 'labrador.jpg'
+          name: 'ラブラドール・レトリーバー', size: '大型犬', group: '鳥猟犬', features: '温厚で知能が高く、家庭犬や盲導犬として世界中で人気。', image: 'labrador.jpg'
         },
         {
-          breed: 'ゴールデン・レトリーバー',
-          size: '大型犬',
-          group: '鳥猟犬',
-          description: 'フレンドリーで忍耐強く、家庭向き。訓練にもよく応じる。',
-          image: 'golden.jpg'
+          name: 'ゴールデン・レトリーバー', size: '大型犬', group: '鳥猟犬', features: 'フレンドリーで忍耐強く、家庭向き。訓練にもよく応じる。', image: 'golden.jpg'
         },
         {
-          breed: 'ボーダー・コリー',
-          size: '中型犬',
-          group: '牧羊犬',
-          description: '非常に賢くエネルギッシュ。作業能力が高く、競技向け。kawaii',
-          image: 'bordercollie.jpg'
+          name: 'ボーダー・コリー', size: '中型犬', group: '牧羊犬', features: '非常に賢くエネルギッシュ。作業能力が高く、競技向け。', image: 'bordercollie.jpg'
         },
         {
-          breed: 'ジャック・ラッセル・テリア',
-          size: '小型犬',
-          group: 'テリア/ダックス',
-          description: '活発で好奇心旺盛。小さいがエネルギーに満ちている。',
-          image: 'jackrussell.jpg'
+          name: 'ジャック・ラッセル・テリア', size: '小型犬', group: 'テリア/ダックス', features: '活発で好奇心旺盛。小さいがエネルギーに満ちている。', image: 'jackrussell.jpg'
         },
         {
-          breed: 'イングリッシュ・コッカー・スパニエル',
-          size: '中型犬',
-          group: '鳥猟犬',
-          description: '優しい性格で家庭犬向き。長い耳が特徴的。',
-          image: 'englishcocker.jpg'
-        },
-        {
-          breed: 'ブルドッグ',
-          size: '中型犬',
-          group: 'その他',
-          description: '頑固だが愛嬌があり、短頭の顔が特徴的。',
-          image: 'bulldog.jpg'
-        },
-        {
-          breed: 'ビーグル',
-          size: '中型犬',
-          group: '嗅覚/視覚ハウンド',
-          description: '嗅覚が非常に優れ、好奇心旺盛で遊び好き。',
-          image: 'beagle.jpg'
-        },
-        {
-          breed: 'ウエスト・ハイランド・ホワイト・テリア',
-          size: '小型犬',
-          group: 'テリア/ダックス',
-          description: '白くてふわふわの毛が特徴。陽気で明るい性格。',
-          image: 'westie.jpg'
-        },
-        {
-          breed: 'スコティッシュ・テリア',
-          size: '小型犬',
-          group: 'テリア/ダックス',
-          description: '短足でしっかりした体格。独立心が強い。',
-          image: 'scottishterrier.jpg'
-        },
-        {
-          breed: 'キング・チャールズ・スパニエル',
-          size: '小型犬',
-          group: '愛玩犬',
-          description: '優雅で愛らしい外見。静かで甘えん坊。',
-          image: 'kingcharles.jpg'
+          name: 'イングリッシュ・コッカー・スパニエル', size: '中型犬', group: '鳥猟犬', features: '優しい性格で家庭犬向き。長い耳が特徴的。', image: 'englishcocker.jpg'
         }
       ]
     }
@@ -235,24 +189,45 @@
 
   function showInfo(countryKey) {
     const panel = document.getElementById('infoPanel');
-    const data = dogData[countryKey];
+    const data = countryData[countryKey];
+    currentCountry = countryKey;
+    currentDogs = data.dogs;
     panel.classList.add('active');
 
-    let html = `<div class="country-title">${data.country}</div>`;
-    data.dogs.forEach(dog => {
+    renderDogs(data.title, currentDogs);
+  }
+
+  function renderDogs(title, dogList) {
+    const panel = document.getElementById('infoPanel');
+    let html = `<div class="country-title">${title}</div>
+                <div id="filterButtons">
+                  <button onclick="filterDogs('all')">すべて</button>
+                  <button onclick="filterDogs('小型犬')">小型犬</button>
+                  <button onclick="filterDogs('中型犬')">中型犬</button>
+                  <button onclick="filterDogs('大型犬')">大型犬</button>
+                </div>`;
+
+    dogList.forEach(dog => {
       html += `
         <div class="slide">
-          <img src="images/${dog.image}" alt="${dog.breed}">
+          <img src="${dog.image}" alt="${dog.name}">
           <div class="slide-content">
-            <div class="breed-title">${dog.breed}</div>
-            <div>サイズ：${dog.size}</div>
-            <div>グループ：${dog.group}</div>
-            <div>特徴：${dog.description}</div>
+            <div class="breed-title">${dog.name}</div>
+            <div><strong>サイズ：</strong>${dog.size}</div>
+            <div><strong>グループ：</strong>${dog.group}</div>
+            <div><strong>特徴：</strong>${dog.features}</div>
           </div>
         </div>`;
     });
 
     panel.innerHTML = html;
+  }
+
+  function filterDogs(size) {
+    if (!currentDogs || !currentCountry) return;
+    const filtered = size === 'all' ? currentDogs : currentDogs.filter(d => d.size === size);
+    const title = countryData[currentCountry].title;
+    renderDogs(title, filtered);
   }
 
   map.on('click', () => {

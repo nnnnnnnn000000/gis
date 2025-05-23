@@ -25,3 +25,22 @@ html, body {
 .dog-info {
   flex: 1;
 }
+
+#filterButtons {
+  margin-bottom: 10px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+#filterButtons button {
+  padding: 5px 10px;
+  background-color: #eee;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#filterButtons button:hover {
+  background-color: #ddd;
+}
