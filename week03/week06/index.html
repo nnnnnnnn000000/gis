@@ -99,6 +99,7 @@
   <div id="styleToggle">
     <label><input type="radio" name="mapStyle" value="light" checked> ホワイト</label>
     <label><input type="radio" name="mapStyle" value="dark"> ダーク</label>
+    <label><input type="radio" name="mapStyle" value="colorful"> カラフル</label>
   </div>
 
   <div id="infoPanel">
@@ -174,7 +175,8 @@
     let currentStyle = 'light';
     const styleURLs = {
       light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-      dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json'
+      dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+      colorful: 'https://demotiles.maplibre.org/style.json'
     };
 
     const map = new maplibregl.Map({
