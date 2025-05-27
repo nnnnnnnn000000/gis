@@ -1,0 +1,46 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+.dog-card {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 10px;
+}
+
+.dog-card img {
+  width: 100px;
+  height: auto;
+  border-radius: 8px;
+}
+
+.dog-info {
+  flex: 1;
+}
+
+#filterButtons {
+  margin-bottom: 10px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+#filterButtons button {
+  padding: 5px 10px;
+  background-color: #eee;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+#filterButtons button:hover {
+  background-color: #ddd;
+}
