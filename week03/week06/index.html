@@ -17,7 +17,6 @@
       width: 100%;
       height: 100%;
     }
-
     #styleToggle {
       position: absolute;
       top: 10px;
@@ -37,7 +36,6 @@
       margin: 0 10px;
       cursor: pointer;
     }
-
     #infoPanel {
       position: absolute;
       top: 0;
@@ -94,164 +92,171 @@
 </head>
 <body>
 
-  <div id="map"></div>
+<div id="map"></div>
 
-  <div id="styleToggle">
-    <label><input type="radio" name="mapStyle" value="light" checked> ホワイト</label>
-    <label><input type="radio" name="mapStyle" value="dark"> ダーク</label>
-    <label><input type="radio" name="mapStyle" value="colorful"> カラフル</label>
+<div id="styleToggle">
+  <label><input type="radio" name="mapStyle" value="light" checked> ホワイト</label>
+  <label><input type="radio" name="mapStyle" value="dark"> ダーク</label>
+  <label><input type="radio" name="mapStyle" value="colorful"> カラフル</label>
+</div>
+
+<div id="infoPanel">
+  <div class="filters">
+    <label>サイズ：
+      <select id="sizeFilter">
+        <option value="">すべて</option>
+        <option value="大型犬">大型犬</option>
+        <option value="中型犬">中型犬</option>
+        <option value="小型犬">小型犬</option>
+      </select>
+    </label>
+    <label>グループ：
+      <select id="groupFilter">
+        <option value="">すべて</option>
+        <option value="使役犬">使役犬</option>
+        <option value="牧羊犬">牧羊犬</option>
+        <option value="テリア/ダックス">テリア/ダックス</option>
+        <option value="愛玩犬">愛玩犬</option>
+        <option value="嗅覚/視覚ハウンド">嗅覚/視覚ハウンド</option>
+        <option value="鳥猟犬">鳥猟犬</option>
+        <option value="原始の犬/スピッツ">原始の犬/スピッツ</option>
+        <option value="その他">その他</option>
+      </select>
+    </label>
   </div>
+  <div id="slidesContainer"></div>
+</div>
 
-  <div id="infoPanel">
-    <div class="filters">
-      <label>サイズ：
-        <select id="sizeFilter">
-          <option value="">すべて</option>
-          <option value="大型犬">大型犬</option>
-          <option value="中型犬">中型犬</option>
-          <option value="小型犬">小型犬</option>
-        </select>
-      </label>
-      <label>グループ：
-        <select id="groupFilter">
-          <option value="">すべて</option>
-          <option value="使役犬">使役犬</option>
-          <option value="牧羊犬">牧羊犬</option>
-          <option value="テリア/ダックス">テリア/ダックス</option>
-          <option value="愛玩犬">愛玩犬</option>
-          <option value="嗅覚/視覚ハウンド">嗅覚/視覚ハウンド</option>
-          <option value="鳥猟犬">鳥猟犬</option>
-          <option value="原始の犬/スピッツ">原始の犬/スピッツ</option>
-          <option value="その他">その他</option>
-        </select>
-      </label>
-    </div>
-    <div id="slidesContainer"></div>
-  </div>
+<script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+<script>
+  const dogData = {
+    japan: {
+      country: '日本',
+      dogs: [
+        { breed: '秋田犬', size: '大型犬', group: '原始の犬/スピッツ', description: '忠誠心が強く落ち着いた性格。', image: 'akita.jpg' },
+        { breed: '柴犬', size: '中型犬', group: '原始の犬/スピッツ', description: '独立心があり活発で忠実。', image: 'shiba.jpg' },
+        { breed: '紀州犬', size: '中型犬', group: '原始の犬/スピッツ', description: '猟犬として優れ、静かで我慢強い。', image: 'kishu.jpg' }
+      ]
+    },
+    germany: {
+      country: 'ドイツ',
+      dogs: [
+        { breed: 'ジャーマン・シェパード', size: '大型犬', group: '使役犬', description: '知能が高く警察犬としても活躍。', image: 'gsd.jpg' },
+        { breed: 'ダックスフント', size: '小型犬', group: 'テリア/ダックス', description: '短足で胴長、活発で好奇心旺盛。', image: 'dachshund.jpg' },
+        { breed: 'ロットワイラー', size: '大型犬', group: '使役犬', description: '力強く勇敢で警備向き。', image: 'rottweiler.jpg' }
+      ]
+    },
+    uk: {
+      country: 'イギリス',
+      dogs: [
+        { breed: 'ラブラドール・レトリーバー', size: '大型犬', group: '鳥猟犬', description: '家庭犬や盲導犬として人気。', image: 'labrador.jpg' },
+        { breed: 'ジャック・ラッセル・テリア', size: '小型犬', group: 'テリア/ダックス', description: '小さいがエネルギッシュ。', image: 'jackrussell.jpg' },
+        { breed: 'ボーダーコリー', size: '中型犬', group: '牧羊犬', description: '頭がよく活発で人懐っこい。とてもかわいい。', image: 'bordecoll.jpg' }
+      ]
+    },
+    usa: {
+      country: 'アメリカ',
+      dogs: [
+        { breed: 'アメリカン・ピット・ブル・テリア', size: '中型犬', group: 'その他', description: '筋肉質で勇敢。正しい訓練が重要。', image: 'pitbull.jpg' },
+        { breed: 'アラスカン・マラミュート', size: '大型犬', group: '原始の犬/スピッツ', description: 'そり引き犬として活躍。友好的で力強い。', image: 'malamute.jpg' }
+      ]
+    },
+    china: {
+      country: '中国',
+      dogs: [
+        { breed: 'チャウチャウ', size: '中型犬', group: '原始の犬/スピッツ', description: 'ライオンのような外見で無口。', image: 'chowchow.jpg' },
+        { breed: 'ペキニーズ', size: '小型犬', group: '愛玩犬', description: 'ふわふわで愛らしく、落ち着きがある。', image: 'pekingese.jpg' }
+      ]
+    }
+  };
 
-  <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
-  <script>
-    const dogData = {
-      japan: {
-        country: '日本',
-        dogs: [
-          { breed: '秋田犬', size: '大型犬', group: '原始の犬/スピッツ', description: '忠誠心が強く落ち着いた性格。', image: 'akita.jpg' },
-          { breed: '柴犬', size: '中型犬', group: '原始の犬/スピッツ', description: '独立心があり活発で忠実。', image: 'shiba.jpg' },
-          { breed: '紀州犬', size: '中型犬', group: '原始の犬/スピッツ', description: '猟犬として優れ、静かで我慢強い。', image: 'kishu.jpg' }
-        ]
-      },
-      germany: {
-        country: 'ドイツ',
-        dogs: [
-          { breed: 'ジャーマン・シェパード', size: '大型犬', group: '使役犬', description: '知能が高く警察犬としても活躍。', image: 'gsd.jpg' },
-          { breed: 'ダックスフント', size: '小型犬', group: 'テリア/ダックス', description: '短足で胴長、活発で好奇心旺盛。', image: 'dachshund.jpg' },
-          { breed: 'ロットワイラー', size: '大型犬', group: '使役犬', description: '力強く勇敢で警備向き。', image: 'rottweiler.jpg' }
-        ]
-      },
-      uk: {
-        country: 'イギリス',
-        dogs: [
-          { breed: 'ラブラドール・レトリーバー', size: '大型犬', group: '鳥猟犬', description: '家庭犬や盲導犬として人気。', image: 'labrador.jpg' },
-          { breed: 'ジャック・ラッセル・テリア', size: '小型犬', group: 'テリア/ダックス', description: '小さいがエネルギッシュ。', image: 'jackrussell.jpg' },
-          { breed: 'ボーダーコリー', size: '中型犬', group: '牧羊犬', description: '頭がよく活発で人懐っこい。とてもかわいい。', image: 'bordecoll.jpg' }
-        ]
-      },
-      usa: {
-        country: 'アメリカ',
-        dogs: [
-          { breed: 'アメリカン・ピット・ブル・テリア', size: '中型犬', group: 'その他', description: '筋肉質で勇敢。正しい訓練が重要。', image: 'pitbull.jpg' },
-          { breed: 'アラスカン・マラミュート', size: '大型犬', group: '原始の犬/スピッツ', description: 'そり引き犬として活躍。友好的で力強い。', image: 'malamute.jpg' }
-        ]
-      },
-      china: {
-        country: '中国',
-        dogs: [
-          { breed: 'チャウチャウ', size: '中型犬', group: '原始の犬/スピッツ', description: 'ライオンのような外見で無口。', image: 'chowchow.jpg' },
-          { breed: 'ペキニーズ', size: '小型犬', group: '愛玩犬', description: 'ふわふわで愛らしく、落ち着きがある。', image: 'pekingese.jpg' }
-        ]
-      }
-    };
+  const styleURLs = {
+    light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+    dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    colorful: 'https://demotiles.maplibre.org/style.json'
+  };
 
-    let currentStyle = 'light';
-    const styleURLs = {
-      light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-      dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-      colorful: 'https://demotiles.maplibre.org/style.json'
-    };
+  let currentStyle = 'light';
 
-    const map = new maplibregl.Map({
-      container: 'map',
-      style: styleURLs[currentStyle],
+  const map = new maplibregl.Map({
+    container: 'map',
+    style: styleURLs[currentStyle],
+    center: [140.123, 35.605],
+    zoom: 1.5
+  });
+
+  document.querySelectorAll('input[name="mapStyle"]').forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      currentStyle = e.target.value;
+      map.setStyle(styleURLs[currentStyle]);
+    });
+  });
+
+  function addMarker(lng, lat, countryKey) {
+    const el = document.createElement('div');
+    el.className = 'marker';
+    el.style.backgroundImage = 'url("mappin.png")';
+    el.style.backgroundSize = 'contain';
+    el.style.backgroundRepeat = 'no-repeat';
+    el.style.width = '60px';
+    el.style.height = '60px';
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      map.flyTo({ center: [lng, lat], zoom: 10, speed: 1.2, curve: 1.5 });
+      showInfo(countryKey);
+    });
+    new maplibregl.Marker(el).setLngLat([lng, lat]).addTo(map);
+  }
+
+  addMarker(139.6917, 35.6895, 'japan');
+  addMarker(13.4050, 52.5200, 'germany');
+  addMarker(-0.1276, 51.5072, 'uk');
+  addMarker(-77.0369, 38.9072, 'usa');
+  addMarker(116.4074, 39.9042, 'china');
+
+  function showInfo(countryKey) {
+    const panel = document.getElementById('infoPanel');
+    panel.classList.add('active');
+    panel.dataset.country = countryKey;
+    renderSlides();
+  }
+
+  function renderSlides() {
+    const countryKey = document.getElementById('infoPanel').dataset.country;
+    const container = document.getElementById('slidesContainer');
+    const size = document.getElementById('sizeFilter').value;
+    const group = document.getElementById('groupFilter').value;
+    const dogs = dogData[countryKey]?.dogs || [];
+    container.innerHTML = '<div class="country-title">' + dogData[countryKey]?.country + '</div>';
+    const filtered = dogs.filter(d => (!size || d.size === size) && (!group || d.group === group));
+    filtered.forEach(dog => {
+      container.innerHTML += `
+        <div class="slide">
+          <img src="${dog.image}" alt="${dog.breed}">
+          <div class="slide-content">
+            <div class="breed-title">${dog.breed}</div>
+            <div>サイズ：${dog.size}</div>
+            <div>グループ：${dog.group}</div>
+            <div>${dog.description}</div>
+          </div>
+        </div>`;
+    });
+  }
+
+  document.getElementById('sizeFilter').addEventListener('change', renderSlides);
+  document.getElementById('groupFilter').addEventListener('change', renderSlides);
+
+  map.on('click', () => {
+    document.getElementById('infoPanel').classList.remove('active');
+    document.getElementById('slidesContainer').innerHTML = '';
+    map.flyTo({
       center: [140.123, 35.605],
-      zoom: 1.5
+      zoom: 1.5,
+      speed: 1.2,
+      curve: 1.5
     });
-
-    // スタイル切り替え
-    document.querySelectorAll('input[name="mapStyle"]').forEach(radio => {
-      radio.addEventListener('change', (e) => {
-        currentStyle = e.target.value;
-        map.setStyle(styleURLs[currentStyle]);
-      });
-    });
-
-    function addMarker(lng, lat, countryKey) {
-      const el = document.createElement('div');
-      el.className = 'marker';
-      el.style.backgroundImage = 'url("mappin.png")';
-      el.style.backgroundSize = 'contain';
-      el.style.backgroundRepeat = 'no-repeat';
-      el.style.width = '60px';
-      el.style.height = '60px';
-      el.style.cursor = 'pointer';
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        showInfo(countryKey);
-      });
-      new maplibregl.Marker(el).setLngLat([lng, lat]).addTo(map);
-    }
-
-    addMarker(139.6917, 35.6895, 'japan');
-    addMarker(13.4050, 52.5200, 'germany');
-    addMarker(-0.1276, 51.5072, 'uk');
-    addMarker(-77.0369, 38.9072, 'usa');
-    addMarker(116.4074, 39.9042, 'china');
-
-    function showInfo(countryKey) {
-      const panel = document.getElementById('infoPanel');
-      panel.classList.add('active');
-      panel.dataset.country = countryKey;
-      renderSlides();
-    }
-
-    function renderSlides() {
-      const countryKey = document.getElementById('infoPanel').dataset.country;
-      const container = document.getElementById('slidesContainer');
-      const size = document.getElementById('sizeFilter').value;
-      const group = document.getElementById('groupFilter').value;
-      const dogs = dogData[countryKey]?.dogs || [];
-      container.innerHTML = '<div class="country-title">' + dogData[countryKey]?.country + '</div>';
-      const filtered = dogs.filter(d => (!size || d.size === size) && (!group || d.group === group));
-      filtered.forEach(dog => {
-        container.innerHTML += `
-          <div class="slide">
-            <img src="${dog.image}" alt="${dog.breed}">
-            <div class="slide-content">
-              <div class="breed-title">${dog.breed}</div>
-              <div>サイズ：${dog.size}</div>
-              <div>グループ：${dog.group}</div>
-              <div>${dog.description}</div>
-            </div>
-          </div>`;
-      });
-    }
-
-    document.getElementById('sizeFilter').addEventListener('change', renderSlides);
-    document.getElementById('groupFilter').addEventListener('change', renderSlides);
-
-    map.on('click', () => {
-      document.getElementById('infoPanel').classList.remove('active');
-      document.getElementById('slidesContainer').innerHTML = '';
-    });
-  </script>
+  });
+</script>
 </body>
 </html>
