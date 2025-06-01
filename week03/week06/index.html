@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>いんぬ</title>
+  <title>犬の原産国マップ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
   <style>
@@ -134,6 +134,15 @@
     #japanDogImage img {
       width: 100%;
       object-fit: contain;
+    }
+  
+    .footprint {
+      position: absolute;
+      width: 24px;
+      pointer-events: none;
+      transition: opacity 0.3s;
+      opacity: 0;
+      z-index: 1000;
     }
 
   </style>
@@ -427,6 +436,75 @@
     });
 
     // 検索バー処理（あとで対応可能）
+
+  function generateFootsteps(start, end, steps = 20) {
+    const footstepCoords = [];
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const x = start.x + t * (end.x - start.x);
+      const y = start.y + t * (end.y - start.y);
+      footstepCoords.push({ x, y });
+    }
+    return footstepCoords;
+  }
+
+  function animateFootsteps(coords) {
+    coords.forEach((coord, index) => {
+      setTimeout(() => {
+        const img = document.createElement('img');
+        img.src = 'images/inu_asiato.png';
+        img.className = 'footprint';
+        img.style.left = `${coord.x}px`;
+        img.style.top = `${coord.y}px`;
+        document.body.appendChild(img);
+
+        requestAnimationFrame(() => {
+          img.style.opacity = '1';
+        });
+
+        // 自動削除（3秒後）
+        setTimeout(() => img.remove(), 3000);
+      }, index * 100);
+    });
+  }
+
+  function showFootstepsToBreedPin(breedId) {
+    const searchBar = document.querySelector('#searchBar')?.getBoundingClientRect();
+    const pin = document.querySelector(`#pin-${breedId}`)?.getBoundingClientRect();
+    if (!searchBar || !pin) return;
+
+    const start = {
+      x: searchBar.left + searchBar.width / 2,
+      y: searchBar.top + searchBar.height / 2
+    };
+    const end = {
+      x: pin.left + pin.width / 2,
+      y: pin.top + pin.height / 2
+    };
+
+    const coords = generateFootsteps(start, end);
+    animateFootsteps(coords);
+  }
+
+  // 検索バーのイベントに連携
+  document.querySelector('#searchBar')?.addEventListener('input', (e) => {
+    const breedName = e.target.value.trim();
+    const breedId = convertBreedNameToId(breedName); // 例: '柴犬' → 'shiba'
+    if (breedId) {
+      showFootstepsToBreedPin(breedId);
+    }
+  });
+
+  // 補助関数：名前からIDを取得（仮の例）
+  function convertBreedNameToId(name) {
+    const map = {
+      '柴犬': 'shiba',
+      '秋田犬': 'akita',
+      '甲斐犬': 'kai',
+      // 必要に応じて追加
+    };
+    return map[name] || null;
+  }
 
   </script>
 </body>
