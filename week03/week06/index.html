@@ -18,11 +18,9 @@
       height: 100%;
     }
 
-    #styleToggle {
+    #styleToggle, #searchContainer {
       position: absolute;
-      top: 60px;
-      left: 50%;
-      transform: translateX(-50%);
+      top: 10px;
       background: rgba(255, 255, 255, 0.9);
       border-radius: 20px;
       padding: 6px 12px;
@@ -30,31 +28,14 @@
       z-index: 999;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
-    #styleToggle input {
-      margin-right: 5px;
-    }
-    #styleToggle label {
-      margin: 0 10px;
-      cursor: pointer;
+
+    #styleToggle {
+      left: 50%;
+      transform: translateX(-50%);
     }
 
-    #searchBar {
-      position: absolute;
-      top: 10px;
+    #searchContainer {
       left: 10px;
-      z-index: 1000;
-      background: white;
-      padding: 5px 10px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    #searchInput {
-      padding: 4px 8px;
-      font-size: 14px;
     }
 
     #infoPanel {
@@ -73,19 +54,11 @@
       transition: transform 0.3s ease;
       z-index: 10;
     }
+
     #infoPanel.active {
       transform: translateX(0);
     }
-    .country-title {
-      font-size: 24px;
-      margin-bottom: 10px;
-    }
-    .filters {
-      margin-bottom: 10px;
-    }
-    .filters label {
-      margin-right: 10px;
-    }
+
     .slide {
       display: flex;
       margin-bottom: 20px;
@@ -94,6 +67,7 @@
       padding: 10px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+
     .slide img {
       width: 150px;
       height: 100px;
@@ -101,74 +75,82 @@
       border-radius: 10px;
       margin-right: 15px;
     }
+
     .slide-content {
       flex: 1;
     }
-    .breed-title {
-      font-weight: bold;
-      font-size: 16px;
-      margin-bottom: 5px;
-    }
 
-    /* 紹介パネル */
-    #introPanel {
-      position: absolute;
+       #introPanel {
+      position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(255,255,255,0.95);
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.6);
       display: flex;
       justify-content: center;
       align-items: center;
       z-index: 2000;
-      animation: fadeInIntro 1s ease forwards;
+      animation: fadeIn 1s ease;
     }
 
     .intro-content {
-      text-align: center;
       background: white;
       padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      font-size: 18px;
+      border-radius: 10px;
+      text-align: center;
+      max-width: 90%;
     }
+
 
     #closeIntro {
       margin-top: 20px;
+      padding: 10px 20px;
       font-size: 16px;
-      padding: 6px 12px;
       border: none;
       background: #748a61;
       color: white;
-      border-radius: 6px;
+      border-radius: 10px;
       cursor: pointer;
     }
 
-    @keyframes fadeInIntro {
+    @keyframes fadeIn {
       from { opacity: 0; }
       to { opacity: 1; }
     }
 
-    @keyframes fadeOutIntro {
-      from { opacity: 1; }
-      to { opacity: 0; }
+    /* 日本犬デザイン画像 */
+    #japanDogImage {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      max-height: 100%;
+      z-index: 5;
+      display: none;
+      pointer-events: none;
     }
+
+    #japanDogImage img {
+      width: 100%;
+      object-fit: contain;
+    }
+
   </style>
 </head>
 <body>
 
   <div id="map"></div>
 
-  <div id="searchBar">
-    <input type="text" id="searchInput" placeholder="犬種を検索" />
-    <button onclick="searchBreed()">検索</button>
-  </div>
-
   <div id="styleToggle">
     <label><input type="radio" name="mapStyle" value="light" checked> ホワイト</label>
     <label><input type="radio" name="mapStyle" value="dark"> ダーク</label>
     <label><input type="radio" name="mapStyle" value="colorful"> カラフル</label>
+  </div>
+
+  <div id="searchContainer">
+    <input type="text" id="searchInput" placeholder="犬種で検索" />
+    <button id="searchBtn">検索</button>
   </div>
 
   <div id="infoPanel">
@@ -198,18 +180,22 @@
     <div id="slidesContainer"></div>
   </div>
 
+  <div id="japanDogImage">
+    <img src="japandog.png" alt="Japan Dog Design">
+  </div>
+
   <div id="introPanel">
     <div class="intro-content">
       <h2>犬マップへようこそ！</h2>
       <p>世界各地の犬の品種を地図上で探すことができます。</p>
-      <p>ピンをクリックすると、その国の犬種が表示されます。</p> 
+      <p>ピンをクリックすると、その国の犬種が表示されます。</p>
       <button id="closeIntro">閉じる</button>
     </div>
   </div>
 
   <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
   <script>
-    const dogData = {
+        const dogData = {
       japan: {
         country: '日本',
         dogs: [
@@ -247,23 +233,118 @@
           { breed: 'チャウチャウ', size: '中型犬', group: '原始の犬/スピッツ', description: 'ライオンのような外見で無口。', image: 'chowchow.jpg' },
           { breed: 'ペキニーズ', size: '小型犬', group: '愛玩犬', description: 'ふわふわで愛らしく、落ち着きがある。', image: 'pekingese.jpg' }
         ]
-      }
-    };
+      },
+      russia: {
+      country: 'ロシア',
+      dogs: [
+        { breed: 'サモエド', size: '大型犬', group: '原始の犬/スピッツ', description: '笑っているような表情が特徴的。', image: 'samoyed.jpg' },
+        { breed: 'シベリアンハスキー', size: '大型犬', group: '原始の犬/スピッツ', description: '青い目と狼のような外見。', image: 'husky.jpg' }
+      ]
+    },
+    switzerland: {
+      country: 'スイス',
+      dogs: [
+        { breed: 'バーニーズマウンテンドッグ', size: '大型犬', group: '使役犬', description: '落ち着いた性格で優しい。', image: 'bernese.jpg' },
+        { breed: 'セントバーナード', size: '大型犬', group: '使役犬', description: '雪山救助で有名な犬。', image: 'saintbernard.jpg' }
+      ]
+    },
+    mexico: {
+      country: 'メキシコ',
+      dogs: [
+        { breed: 'チワワ', size: '小型犬', group: '愛玩犬', description: '世界最小の犬種。', image: 'chihuahua.jpg' }
+      ]
+    },
+    scotland: {
+      country: 'スコットランド',
+      dogs: [
+        { breed: 'シェットランドシープドッグ', size: '中型犬', group: '牧羊犬', description: '賢くて訓練しやすい。', image: 'shetland.jpg' },
+        { breed: 'スコティッシュテリア', size: '小型犬', group: 'テリア/ダックス', description: '頑固だけど忠実。', image: 'scottishterrier.jpg' }
+      ]
+    },
+    australia: {
+      country: 'オーストラリア',
+      dogs: [
+        { breed: 'ケルピー', size: '中型犬', group: '牧羊犬', description: '働き者でとても活発。', image: 'kelpie.jpg' }
+      ]
+    },
+    canada: {
+      country: 'カナダ',
+      dogs: [
+        { breed: 'ラブラドールレトリバー', size: '大型犬', group: '鳥猟犬', description: '家庭犬に最適。', image: 'labrador.jpg' },
+        { breed: 'ニューファンドランド', size: '大型犬', group: '使役犬', description: '泳ぎが得意で力強い。', image: 'newfoundland.jpg' }
+      ]
+    },
+    france: {
+      country: 'フランス',
+      dogs: [
+        { breed: 'プードル', size: '中型犬', group: '愛玩犬', description: '非常に知的でおしゃれ。', image: 'poodle.jpg' },
+        { breed: 'ビションフリーゼ', size: '小型犬', group: '愛玩犬', description: 'ふわふわで人懐っこい。', image: 'bichon.jpg' },
+        { breed: 'フレンチブルドッグ', size: '小型犬', group: '愛玩犬', description: '短い鼻と愛らしい性格。', image: 'frenchbulldog.jpg' }
+      ]
+    },
+    croatia: {
+      country: 'クロアチア',
+      dogs: [
+        { breed: 'ダルメシアン', size: '中型犬', group: '鳥猟犬', description: '白黒のブチ模様で有名。', image: 'dalmatian.jpg' }
+      ]
+    },
+    tibet: {
+      country: 'チベット',
+      dogs: [
+        { breed: 'チベタンマスティフ', size: '大型犬', group: '原始の犬/スピッツ', description: '巨大でとても守護的。', image: 'tibetanmastiff.jpg' }
+      ]
+    },
+    hungary: {
+      country: 'ハンガリー',
+      dogs: [
+        { breed: 'ビズラ', size: '中型犬', group: '鳥猟犬', description: 'エレガントで忠実な猟犬。', image: 'vizsla.jpg' }
+      ]
+    },
+    ireland: {
+      country: 'アイルランド',
+      dogs: [
+        { breed: 'アイリッシュセッター', size: '大型犬', group: '鳥猟犬', description: '美しい赤毛と陽気な性格。', image: 'irishsetter.jpg' }
+      ]
+    },
+    netherlands: {
+      country: 'オランダ',
+      dogs: [
+        { breed: 'キースホンド', size: '中型犬', group: '原始の犬/スピッツ', description: 'ふわふわの毛と笑顔。', image: 'keeshond.jpg' }
+      ]
+    }
+  };
 
-    const countryCoords = {
+
+
+
+    const coordinates = {
       japan: [139.6917, 35.6895],
-      germany: [13.4050, 52.5200],
+      germany: [13.4050, 52.52],
       uk: [-0.1276, 51.5072],
       usa: [-77.0369, 38.9072],
-      china: [116.4074, 39.9042]
+      china: [116.4074, 39.9042],
+      netherlands: [4.8952, 52.3702],
+      ireland: [-6.2603, 53.3498],
+      hungary: [19.0402, 47.4979],
+      tibet: [91.1172, 29.6456],
+      croatia: [15.9819, 45.8150],
+      france: [2.3522, 48.8566],
+      canada: [-79.3832, 43.6532],
+      australia: [149.1309, -35.2809],
+      scotland: [-3.1883, 55.9533],
+      mexico: [-99.1332, 19.4326],
+      switzerland: [8.5417, 47.3769],
+      russia: [37.6173, 55.7558]
     };
-
-    let currentStyle = 'light';
+  
+    
     const styleURLs = {
       light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
       dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
       colorful: 'https://demotiles.maplibre.org/style.json'
     };
+
+    let currentStyle = 'light';
 
     const map = new maplibregl.Map({
       container: 'map',
@@ -273,13 +354,13 @@
     });
 
     document.querySelectorAll('input[name="mapStyle"]').forEach(radio => {
-      radio.addEventListener('change', (e) => {
+      radio.addEventListener('change', e => {
         currentStyle = e.target.value;
         map.setStyle(styleURLs[currentStyle]);
       });
     });
 
-    function addMarker(lng, lat, countryKey) {
+    function addMarker(lng, lat, key) {
       const el = document.createElement('div');
       el.className = 'marker';
       el.style.backgroundImage = 'url("mappin.png")';
@@ -288,42 +369,44 @@
       el.style.width = '60px';
       el.style.height = '60px';
       el.style.cursor = 'pointer';
-      el.addEventListener('click', (e) => {
+      el.addEventListener('click', e => {
         e.stopPropagation();
-        showInfo(countryKey);
+        showInfo(key);
         map.flyTo({ center: [lng, lat], zoom: 10 });
       });
       new maplibregl.Marker(el).setLngLat([lng, lat]).addTo(map);
     }
 
-    for (const [key, coord] of Object.entries(countryCoords)) {
+    Object.entries(coordinates).forEach(([key, coord]) => {
       addMarker(coord[0], coord[1], key);
-    }
+    });
 
     function showInfo(countryKey) {
       const panel = document.getElementById('infoPanel');
       panel.classList.add('active');
       panel.dataset.country = countryKey;
       renderSlides();
+
+      // 日本犬画像表示
+      document.getElementById('japanDogImage').style.display = countryKey === 'japan' ? 'block' : 'none';
     }
 
     function renderSlides() {
-      const countryKey = document.getElementById('infoPanel').dataset.country;
+      const key = document.getElementById('infoPanel').dataset.country;
+      const dogs = dogData[key]?.dogs || [];
       const container = document.getElementById('slidesContainer');
       const size = document.getElementById('sizeFilter').value;
       const group = document.getElementById('groupFilter').value;
-      const dogs = dogData[countryKey]?.dogs || [];
-      container.innerHTML = '<div class="country-title">' + dogData[countryKey]?.country + '</div>';
-      const filtered = dogs.filter(d => (!size || d.size === size) && (!group || d.group === group));
-      filtered.forEach(dog => {
+      container.innerHTML = `<div class="country-title">${dogData[key]?.country}</div>`;
+      dogs.filter(d => (!size || d.size === size) && (!group || d.group === group)).forEach(d => {
         container.innerHTML += `
           <div class="slide">
-            <img src="${dog.image}" alt="${dog.breed}">
+            <img src="${d.image}" alt="${d.breed}">
             <div class="slide-content">
-              <div class="breed-title">${dog.breed}</div>
-              <div>サイズ：${dog.size}</div>
-              <div>グループ：${dog.group}</div>
-              <div>${dog.description}</div>
+              <div class="breed-title">${d.breed}</div>
+              <div>サイズ：${d.size}</div>
+              <div>グループ：${d.group}</div>
+              <div>${d.description}</div>
             </div>
           </div>`;
       });
@@ -333,38 +416,18 @@
     document.getElementById('groupFilter').addEventListener('change', renderSlides);
 
     map.on('click', () => {
-      const panel = document.getElementById('infoPanel');
-      panel.classList.remove('active');
+      document.getElementById('infoPanel').classList.remove('active');
       document.getElementById('slidesContainer').innerHTML = '';
-      map.flyTo({ center: [140.123, 35.605], zoom: 1.5 });
+      map.flyTo({ zoom: 1.5 });
+      document.getElementById('japanDogImage').style.display = 'none';
     });
 
-    // サイト紹介パネル
-    document.getElementById('closeIntro').addEventListener('click', function () {
-      const intro = document.getElementById('introPanel');
-      intro.style.animation = 'fadeOutIntro 1s ease forwards';
-      setTimeout(() => {
-        intro.style.display = 'none';
-      }, 1000);
+    document.getElementById('closeIntro').addEventListener('click', () => {
+      document.getElementById('introPanel').style.display = 'none';
     });
 
-    // 犬種検索処理
-    function searchBreed() {
-      const input = document.getElementById('searchInput').value.trim();
-      if (!input) return;
+    // 検索バー処理（あとで対応可能）
 
-      for (const [key, value] of Object.entries(dogData)) {
-        const found = value.dogs.find(d => d.breed.includes(input));
-        if (found) {
-          showInfo(key);
-          const coord = countryCoords[key];
-          map.flyTo({ center: coord, zoom: 10 });
-          return;
-        }
-      }
-
-      alert('該当する犬種が見つかりませんでした。');
-    }
   </script>
 </body>
 </html>
