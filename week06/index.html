@@ -382,29 +382,29 @@
     });
 
     function showInfo(countryKey) {
-  const panel = document.getElementById('infoPanel');
-  panel.classList.add('active');
-  panel.dataset.country = countryKey;
+      const panel = document.getElementById('infoPanel');
+      panel.classList.add('active');
+      panel.dataset.country = countryKey;
 
-  renderSlides(); // スライド表示
+      renderSlides(); // スライド表示
 
   // 特定の国ごとの犬イラストを表示
-  const dogImagesByCountry = {
-    japan: 'japandog.png',
-    china: 'chinadog.png',
-    germany: 'germanydog.png'
+      const dogImagesByCountry = {
+        japan: 'japandog.png',
+        china: 'chinadog.png',
+        germany: 'germanydog.png'
     // 必要なら追加
-  };
+      };
 
-  const japanDogImage = document.getElementById('japanDogImage');
-  const imageFile = dogImagesByCountry[countryKey];
+      const japanDogImage = document.getElementById('japanDogImage');
+      const imageFile = dogImagesByCountry[countryKey];
 
-  if (imageFile) {
-    japanDogImage.querySelector('img').src = imageFile;
-    japanDogImage.style.display = 'block';
-  } else {
-    japanDogImage.style.display = 'none';
-  }
+      if (imageFile) {
+        japanDogImage.querySelector('img').src = imageFile;
+        japanDogImage.style.display = 'block';
+      } else {
+        japanDogImage.style.display = 'none';
+      }
 
         renderSlides(); // スライド表示（既存）
       };
