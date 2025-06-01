@@ -426,7 +426,21 @@
       document.getElementById('introPanel').style.display = 'none';
     });
 
-    // 検索バー処理（あとで対応可能）
+    document.getElementById('searchBtn').addEventListener('click', () => {
+      const query = document.getElementById('searchInput').value.trim().toLowerCase();
+      if (!query) return;
+
+      for (const key in dogData) {
+        const dog = dogData[key].dogs.find(d => d.breed.toLowerCase().includes(query));
+        if (dog) {
+          showInfo(key);
+          map.flyTo({ center: coordinates[key], zoom: 5 });
+          return;
+        }
+    }
+
+    alert('該当する犬種が見つかりませんでした。');
+  });
 
   </script>
 </body>
