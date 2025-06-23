@@ -372,7 +372,7 @@
       el.addEventListener('click', e => {
         e.stopPropagation();
         showInfo(key);
-        map.flyTo({ center: [lng, lat], zoom: 10 });
+        map.flyTo({ center: [lng, lat], zoom: 5 });
       });
       new maplibregl.Marker(el).setLngLat([lng, lat]).addTo(map);
     }
