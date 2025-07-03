@@ -136,6 +136,12 @@
       object-fit: contain;
     }
 
+    .lineage-message {
+      font-weight: bold;
+      font-size: 22px;
+      color: #333;
+    }
+
   </style>
 </head>
 <body>
@@ -258,7 +264,8 @@
       country: 'スコットランド',
       dogs: [
         { breed: 'シェットランドシープドッグ', size: '中型犬', group: '牧羊犬', description: '賢くて訓練しやすい。', image: 'shetland.jpg' },
-        { breed: 'スコティッシュテリア', size: '小型犬', group: 'テリア/ダックス', description: '頑固だけど忠実。', image: 'scottishterrier.jpg' }
+        { breed: 'スコティッシュテリア', size: '小型犬', group: 'テリア/ダックス', description: '頑固だけど忠実。', image: 'scottishterrier.jpg' },
+         { breed: 'ラフコリー', size: '大型犬', group: '牧羊犬', description: '優雅な毛並みと穏やかな性格。', image: 'roughcollie.jpg' }
       ]
     },
     australia: {
@@ -337,6 +344,10 @@
       russia: [37.6173, 55.7558]
     };
   
+    const lineageMap = {
+      "ボーダーコリー": "ラフコリー"
+      // 必要なら今後追加
+    };
     
     const styleURLs = {
       light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
@@ -419,6 +430,10 @@
       const group = document.getElementById('groupFilter').value;
       container.innerHTML = `<div class="country-title">${dogData[key]?.country}</div>`;
       dogs.filter(d => (!size || d.size === size) && (!group || d.group === group)).forEach(d => {
+        const showLineageBtn = (lineageMap[d.breed] && d.group !== "原始の犬/スピッツ")
+          ? `<button onclick="handleLineage('${d.breed}')">どの犬の派生？</button>`
+          : '';
+
         container.innerHTML += `
           <div class="slide">
             <img src="${d.image}" alt="${d.breed}">
@@ -427,6 +442,7 @@
               <div>サイズ：${d.size}</div>
               <div>グループ：${d.group}</div>
               <div>${d.description}</div>
+              ${showLineageBtn}
             </div>
           </div>`;
       });
@@ -461,6 +477,64 @@
 
     alert('該当する犬種が見つかりませんでした。');
   });
+
+  function showLineageInfo(child, parent) {
+      const overlay = document.createElement('div');
+      overlay.id = 'lineageOverlay';
+      overlay.style.position = 'fixed';
+      overlay.style.top = 0;
+      overlay.style.left = 0;
+      overlay.style.width = '100vw';
+      overlay.style.height = '100vh';
+      overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+      overlay.style.display = 'flex';
+      overlay.style.alignItems = 'center';
+      overlay.style.justifyContent = 'center';
+      overlay.style.zIndex = 3000;
+
+      const slide = document.createElement('div');
+      slide.className = 'lineage-message';
+      slide.innerText = `${child}は${parent}から派生した！`;
+      slide.style.background = 'white';
+      slide.style.padding = '30px';
+      slide.style.borderRadius = '20px';
+      slide.style.boxShadow = '0 4px 10px rgba(0,0,0,0.3)';
+      slide.style.fontSize = '20px';
+      slide.style.textAlign = 'center';
+
+      overlay.appendChild(slide);
+      document.body.appendChild(overlay);
+
+      // ⬇⬇⬇ ←これでどこクリックしてもOK
+      overlay.addEventListener('click', () => {
+        overlay.remove();
+      });
+    }
+
+function handleLineage(child) {
+  const parent = lineageMap[child];
+  if (!parent) return;
+
+  let originKey = null;
+  for (const key in dogData) {
+    if (dogData[key].dogs.some(d => d.breed === parent)) {
+      originKey = key;
+      break;
+    }
+  }
+
+  if (originKey) {
+    // 中心に移動させる⬇
+    const coord = coordinates[originKey];
+    if (coord) {
+      map.flyTo({ center: coord, zoom: 5 });
+    }
+
+    showInfo(originKey);               // 情報表示
+    showLineageInfo(child, parent);   // スライド表示
+  }
+}
+
 
   </script>
 </body>
