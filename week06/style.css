@@ -22,12 +22,13 @@
 }
 
 .footprint {
-  width: 40px;
-  height: 40px;
+  width: 24px;
+  height: 24px;
+  background-image: url('images/inu_asiato.png');
   background-size: contain;
   background-repeat: no-repeat;
   position: absolute;
   transform-origin: center;
   pointer-events: none;
-  z-index: 2000;
+  
 }
