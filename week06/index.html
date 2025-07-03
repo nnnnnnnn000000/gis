@@ -495,16 +495,25 @@
   let footprintMarkers = [];
 
 function drawFootprints(fromCoord, toCoord) {
+  // 足跡画像の切り替え（ダークなら白、他は黒）
+  const footprintImage = currentStyle === 'dark'
+    ? 'images/inu_asiato_whitepng.png'
+    : 'images/inu_asiato.png';
+
+  // 古い足跡を削除
   footprintMarkers.forEach(m => m.remove());
   footprintMarkers = [];
 
-  const steps = 30;
-  const lngStep = (toCoord[0] - fromCoord[0]) / steps;
-  const latStep = (toCoord[1] - fromCoord[1]) / steps;
+  lastFootprintCoords = { from: fromCoord, to: toCoord };
 
-  for (let i = 0; i < steps; i++) {
-    const lng = fromCoord[0] + lngStep * i;
-    const lat = fromCoord[1] + latStep * i;
+  const steps = 8; // 足跡の数（間隔調整済み）
+  const offset = 0.3; // グネグネ度（任意で調整）
+
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps;
+
+    const lng = fromCoord[0] * (1 - t) + toCoord[0] * t + Math.sin(t * Math.PI * 4) * offset;
+    const lat = fromCoord[1] * (1 - t) + toCoord[1] * t + Math.cos(t * Math.PI * 4) * offset;
 
     const angle = Math.atan2(
       toCoord[1] - fromCoord[1],
@@ -513,7 +522,16 @@ function drawFootprints(fromCoord, toCoord) {
 
     const el = document.createElement('div');
     el.className = 'footprint';
+    el.style.width = '50px';
+    el.style.height = '50px';
+    el.style.backgroundImage = `url("${footprintImage}")`;
+    el.style.backgroundSize = 'contain';
+    el.style.backgroundRepeat = 'no-repeat';
+    el.style.position = 'absolute';
+    el.style.transformOrigin = 'center';
     el.style.transform = `rotate(${angle}deg)`;
+    el.style.zIndex = 2000;
+    el.style.pointerEvents = 'none';
 
     const marker = new maplibregl.Marker(el)
       .setLngLat([lng, lat])
