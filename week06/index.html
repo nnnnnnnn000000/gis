@@ -13,6 +13,11 @@
 </head>
 <body>
 
+<div id="controlPanel">
+  <button id="toggleEventPinsBtn"  class="icon-btn" style="background-image: url('eventai.png');"></button>
+  <button id="toggleCountryPinsBtn"  class="icon-btn active" style="background-image: url('mappin.png');"></button>
+</div>
+
   <div id="map"></div>
 
   <div id="styleToggle">
@@ -72,12 +77,12 @@
   <script src="lineageMap.js"></script>
   <script src="event.js"></script>
 
-  <div id="eventToggle">
-    <label>
-      <input type="checkbox" id="toggleEvents" />
-      犬のイベントを表示
-    </label>
-  </div>
+<div id="eventToggle" style="display: none;">
+  <label>
+    <input type="checkbox" id="toggleEvents" />
+    犬のイベントを表示
+  </label>
+</div>
 
     <script>
 
@@ -144,6 +149,75 @@
       zoom: 1.5
     });
 
+
+let eventMarkers = [];
+
+// イベントピン表示関数
+function showEventPins() {
+  eventData.forEach(event => {
+    const el = document.createElement('div');
+    el.className = 'event-marker';
+    el.style.width = '40px';
+    el.style.height = '40px';
+    el.style.backgroundImage = 'url("eventpin.png")'; 
+    el.style.backgroundSize = 'contain';
+    el.style.backgroundRepeat = 'no-repeat';
+    el.style.backgroundPosition = 'center';
+    el.style.cursor = 'pointer';
+
+    el.addEventListener('click', () => {
+      alert(`${event.title}\n${event.date}\n${event.description}`);
+    });
+
+    const marker = new maplibregl.Marker(el)
+      .setLngLat([event.lng, event.lat])
+      .addTo(map);
+
+    eventMarkers.push(marker);
+  });
+}
+
+// イベントピン非表示関数
+function hideEventPins() {
+  eventMarkers.forEach(marker => marker.remove());
+  eventMarkers = [];
+}
+
+// ボタンクリックでイベント表示/非表示を切り替え
+let countriesVisible = true;  // ← これを先に宣言
+
+const toggleCountryBtn = document.getElementById('toggleCountryPinsBtn');
+
+toggleCountryBtn.addEventListener('click', () => {
+  if (countriesVisible) {
+    hideCountryPins();
+    toggleCountryBtn.classList.remove('active');
+    toggleCountryBtn.classList.add('inactive');
+  } else {
+    showCountryPins();
+    toggleCountryBtn.classList.add('active');
+    toggleCountryBtn.classList.remove('inactive');
+  }
+  countriesVisible = !countriesVisible;
+});
+
+let eventsVisible = false; // イベントピンの表示状態管理（初期は非表示でもOK）
+
+const toggleEventBtn = document.getElementById('toggleEventPinsBtn');
+
+toggleEventBtn.addEventListener('click', () => {
+  if (eventsVisible) {
+    hideEventPins();
+    toggleEventBtn.classList.remove('active');
+    toggleEventBtn.classList.add('inactive');
+  } else {
+    showEventPins();
+    toggleEventBtn.classList.add('active');
+    toggleEventBtn.classList.remove('inactive');
+  }
+  eventsVisible = !eventsVisible;
+});
+
     document.querySelectorAll('input[name="mapStyle"]').forEach(radio => {
       radio.addEventListener('change', e => {
         currentStyle = e.target.value;
@@ -151,28 +225,48 @@
       });
     });
 
-    function addMarker(lng, lat, key) {
-      const el = document.createElement('div');
-      el.className = 'marker';
-      el.style.backgroundImage = 'url("mappin.png")';
-      el.style.backgroundSize = 'contain';
-      el.style.backgroundRepeat = 'no-repeat';
-      el.style.width = '60px';
-      el.style.height = '60px';
-      el.style.cursor = 'pointer';
-      el.addEventListener('click', e => {
-        e.stopPropagation();
-        showInfo(key);
-        map.flyTo({ center: [lng, lat], zoom: 5 });
-      });
-      new maplibregl.Marker(el).setLngLat([lng, lat]).addTo(map);
-    }
+// 1. countryMarkers 配列をグローバルに用意（できればスクリプトの先頭かaddMarkerの前）
+
+let countryMarkers = [];
+
+// 2. addMarker関数の中身を次のように修正
+
+function addMarker(lng, lat, key) {
+  const el = document.createElement('div');
+  el.className = 'marker';
+  el.style.backgroundImage = 'url("mappin.png")';
+  el.style.backgroundSize = 'contain';
+  el.style.backgroundRepeat = 'no-repeat';
+  el.style.width = '60px';
+  el.style.height = '60px';
+  el.style.cursor = 'pointer';
+  el.addEventListener('click', e => {
+    e.stopPropagation();
+    showInfo(key);
+    map.flyTo({ center: [lng, lat], zoom: 5 });
+  });
+
+  const marker = new maplibregl.Marker(el).setLngLat([lng, lat]).addTo(map);
+  countryMarkers.push(marker);  // ここで保存する
+}
+
+// 3. 表示・非表示切り替え関数を追加
+
+
+function showCountryPins() {
+  countryMarkers.forEach(marker => marker.addTo(map));
+}
+
+function hideCountryPins() {
+  countryMarkers.forEach(marker => marker.remove());
+}
+
 
     Object.entries(coordinates).forEach(([key, coord]) => {
       addMarker(coord[0], coord[1], key);
     });
 
-    let eventMarkers = [];
+
 
     function showEventPins() {
       eventData.forEach(event => {
@@ -180,7 +274,7 @@
         el.className = 'event-marker';
         el.style.width = '40px';
         el.style.height = '40px';
-        el.style.backgroundImage = 'url("images/event_pin.png")';
+        el.style.backgroundImage = 'url("eventpin.png")';
         el.style.backgroundSize = 'contain';
         el.style.cursor = 'pointer';
 
