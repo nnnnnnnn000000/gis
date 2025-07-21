@@ -1,160 +1,15 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
+
+  <script type="module" src="./firebase-init.js"></script>
+
   <meta charset="UTF-8" />
   <title>犬の原産国マップ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      font-family: sans-serif;
-    }
-    #map {
-      width: 100%;
-      height: 100%;
-    }
+  <link rel="stylesheet" href="style.css">
 
-    #styleToggle, #searchContainer {
-      position: absolute;
-      top: 10px;
-      background: rgba(255, 255, 255, 0.9);
-      border-radius: 20px;
-      padding: 6px 12px;
-      font-size: 14px;
-      z-index: 999;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-    }
-
-    #styleToggle {
-      left: 50%;
-      transform: translateX(-50%);
-    }
-
-    #searchContainer {
-      left: 10px;
-    }
-
-    #infoPanel {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 40%;
-      max-width: 500px;
-      height: 100%;
-      background: #748a61;
-      box-shadow: -4px 0 10px rgba(0, 0, 0, 0.1);
-      padding: 20px;
-      box-sizing: border-box;
-      overflow-y: auto;
-      transform: translateX(100%);
-      transition: transform 0.3s ease;
-      z-index: 10;
-    }
-
-    #infoPanel.active {
-      transform: translateX(0);
-    }
-
-    .slide {
-      display: flex;
-      margin-bottom: 20px;
-      background: #f5f5f5;
-      border-radius: 10px;
-      padding: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    .slide img {
-      width: 150px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 10px;
-      margin-right: 15px;
-    }
-
-    .slide-content {
-      flex: 1;
-    }
-
-       #introPanel {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.6);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-      animation: fadeIn 1s ease;
-    }
-
-    .intro-content {
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      text-align: center;
-      max-width: 90%;
-    }
-
-
-    #closeIntro {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      background: #748a61;
-      color: white;
-      border-radius: 10px;
-      cursor: pointer;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    /* 日本犬デザイン画像 */
-    #japanDogImage {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      max-height: 100%;
-      z-index: 5;
-      display: none;
-      pointer-events: none;
-    }
-
-    #japanDogImage img {
-      width: 100%;
-      object-fit: contain;
-    }
-
-    .lineage-message {
-      font-weight: bold;
-      font-size: 22px;
-      color: #333;
-    }
-
-    .footprint {
-      width: 24px;
-      height: 24px;
-      background-image: url('images/inu_asiato.png');
-      background-size: contain;
-      background-repeat: no-repeat;
-      position: absolute;
-      transform-origin: center;
-      pointer-events: none;
-    }
-
-
-  </style>
 </head>
 <body>
 
@@ -212,128 +67,28 @@
   </div>
 
   <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
-  <script>
-        const dogData = {
-      japan: {
-        country: '日本',
-        dogs: [
-          { breed: '秋田犬', size: '大型犬', group: '原始の犬/スピッツ', description: '忠誠心が強く落ち着いた性格。', image: 'akita.jpg' },
-          { breed: '柴犬', size: '中型犬', group: '原始の犬/スピッツ', description: '独立心があり活発で忠実。', image: 'shiba.jpg' },
-          { breed: '紀州犬', size: '中型犬', group: '原始の犬/スピッツ', description: '猟犬として優れ、静かで我慢強い。', image: 'kishu.jpg' }
-        ]
-      },
-      germany: {
-        country: 'ドイツ',
-        dogs: [
-          { breed: 'ジャーマン・シェパード', size: '大型犬', group: '使役犬', description: '知能が高く警察犬としても活躍。', image: 'gsd.jpg' },
-          { breed: 'ダックスフント', size: '小型犬', group: 'テリア/ダックス', description: '短足で胴長、活発で好奇心旺盛。', image: 'dachshund.jpg' },
-          { breed: 'ロットワイラー', size: '大型犬', group: '使役犬', description: '力強く勇敢で警備向き。', image: 'rottweiler.jpg' }
-        ]
-      },
-      uk: {
-        country: 'イギリス',
-        dogs: [
-          { breed: 'ラブラドール・レトリーバー', size: '大型犬', group: '鳥猟犬', description: '家庭犬や盲導犬として人気。', image: 'labrador.jpg' },
-          { breed: 'ジャック・ラッセル・テリア', size: '小型犬', group: 'テリア/ダックス', description: '小さいがエネルギッシュ。', image: 'jackrussell.jpg' },
-          { breed: 'ボーダーコリー', size: '中型犬', group: '牧羊犬', description: '頭がよく活発で人懐っこい。とてもかわいい。', image: 'bordecoll.jpg' }
-        ]
-      },
-      usa: {
-        country: 'アメリカ',
-        dogs: [
-          { breed: 'アメリカン・ピット・ブル・テリア', size: '中型犬', group: 'その他', description: '筋肉質で勇敢。正しい訓練が重要。', image: 'pitbull.jpg' },
-          { breed: 'アラスカン・マラミュート', size: '大型犬', group: '原始の犬/スピッツ', description: 'そり引き犬として活躍。友好的で力強い。', image: 'malamute.jpg' }
-        ]
-      },
-      china: {
-        country: '中国',
-        dogs: [
-          { breed: 'チャウチャウ', size: '中型犬', group: '原始の犬/スピッツ', description: 'ライオンのような外見で無口。', image: 'chowchow.jpg' },
-          { breed: 'ペキニーズ', size: '小型犬', group: '愛玩犬', description: 'ふわふわで愛らしく、落ち着きがある。', image: 'pekingese.jpg' }
-        ]
-      },
-      russia: {
-      country: 'ロシア',
-      dogs: [
-        { breed: 'サモエド', size: '大型犬', group: '原始の犬/スピッツ', description: '笑っているような表情が特徴的。', image: 'samoyed.jpg' },
-        { breed: 'シベリアンハスキー', size: '大型犬', group: '原始の犬/スピッツ', description: '青い目と狼のような外見。', image: 'husky.jpg' }
-      ]
-    },
-    switzerland: {
-      country: 'スイス',
-      dogs: [
-        { breed: 'バーニーズマウンテンドッグ', size: '大型犬', group: '使役犬', description: '落ち着いた性格で優しい。', image: 'bernese.jpg' },
-        { breed: 'セントバーナード', size: '大型犬', group: '使役犬', description: '雪山救助で有名な犬。', image: 'saintbernard.jpg' }
-      ]
-    },
-    mexico: {
-      country: 'メキシコ',
-      dogs: [
-        { breed: 'チワワ', size: '小型犬', group: '愛玩犬', description: '世界最小の犬種。', image: 'chihuahua.jpg' }
-      ]
-    },
-    scotland: {
-      country: 'スコットランド',
-      dogs: [
-        { breed: 'シェットランドシープドッグ', size: '中型犬', group: '牧羊犬', description: '賢くて訓練しやすい。', image: 'shetland.jpg' },
-        { breed: 'スコティッシュテリア', size: '小型犬', group: 'テリア/ダックス', description: '頑固だけど忠実。', image: 'scottishterrier.jpg' },
-         { breed: 'ラフコリー', size: '大型犬', group: '牧羊犬', description: '優雅な毛並みと穏やかな性格。', image: 'roughcollie.jpg' }
-      ]
-    },
-    australia: {
-      country: 'オーストラリア',
-      dogs: [
-        { breed: 'ケルピー', size: '中型犬', group: '牧羊犬', description: '働き者でとても活発。', image: 'kelpie.jpg' }
-      ]
-    },
-    canada: {
-      country: 'カナダ',
-      dogs: [
-        { breed: 'ラブラドールレトリバー', size: '大型犬', group: '鳥猟犬', description: '家庭犬に最適。', image: 'labrador.jpg' },
-        { breed: 'ニューファンドランド', size: '大型犬', group: '使役犬', description: '泳ぎが得意で力強い。', image: 'newfoundland.jpg' }
-      ]
-    },
-    france: {
-      country: 'フランス',
-      dogs: [
-        { breed: 'プードル', size: '中型犬', group: '愛玩犬', description: '非常に知的でおしゃれ。', image: 'poodle.jpg' },
-        { breed: 'ビションフリーゼ', size: '小型犬', group: '愛玩犬', description: 'ふわふわで人懐っこい。', image: 'bichon.jpg' },
-        { breed: 'フレンチブルドッグ', size: '小型犬', group: '愛玩犬', description: '短い鼻と愛らしい性格。', image: 'frenchbulldog.jpg' }
-      ]
-    },
-    croatia: {
-      country: 'クロアチア',
-      dogs: [
-        { breed: 'ダルメシアン', size: '中型犬', group: '鳥猟犬', description: '白黒のブチ模様で有名。', image: 'dalmatian.jpg' }
-      ]
-    },
-    tibet: {
-      country: 'チベット',
-      dogs: [
-        { breed: 'チベタンマスティフ', size: '大型犬', group: '原始の犬/スピッツ', description: '巨大でとても守護的。', image: 'tibetanmastiff.jpg' }
-      ]
-    },
-    hungary: {
-      country: 'ハンガリー',
-      dogs: [
-        { breed: 'ビズラ', size: '中型犬', group: '鳥猟犬', description: 'エレガントで忠実な猟犬。', image: 'vizsla.jpg' }
-      ]
-    },
-    ireland: {
-      country: 'アイルランド',
-      dogs: [
-        { breed: 'アイリッシュセッター', size: '大型犬', group: '鳥猟犬', description: '美しい赤毛と陽気な性格。', image: 'irishsetter.jpg' }
-      ]
-    },
-    netherlands: {
-      country: 'オランダ',
-      dogs: [
-        { breed: 'キースホンド', size: '中型犬', group: '原始の犬/スピッツ', description: 'ふわふわの毛と笑顔。', image: 'keeshond.jpg' }
-      ]
-    }
-  };
+
+  <script src="dogData.js"></script>
+  <script src="lineageMap.js"></script>
+  <script src="event.js"></script>
+
+  <div id="eventToggle">
+    <label>
+      <input type="checkbox" id="toggleEvents" />
+      犬のイベントを表示
+    </label>
+  </div>
+
+    <script>
 
 
+      document.getElementById('toggleEvents').addEventListener('change', function() {
+        if (this.checked) {
+          showEventPins();
+        } else {
+          hideEventPins();
+        }
+      });
 
 
     const coordinates = {
@@ -356,16 +111,29 @@
       russia: [37.6173, 55.7558]
     };
   
-    const lineageMap = {
-      "ボーダーコリー": "ラフコリー"
-      // 必要なら今後追加
-    };
+
     
     const styleURLs = {
       light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
       dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
       colorful: 'https://demotiles.maplibre.org/style.json'
     };
+
+    document.querySelectorAll('input[name="mapStyle"]').forEach(radio => {
+    radio.addEventListener('change', e => {
+      currentStyle = e.target.value;
+      map.setStyle(styleURLs[currentStyle]);
+
+      // クレジット表示の切り替え
+      const credit = document.getElementById('mapCredit');
+      if (currentStyle === 'colorful') {
+        credit.style.display = 'block';
+      } else {
+        credit.style.display = 'none';
+      }
+    });
+  });
+
 
     let currentStyle = 'light';
 
@@ -403,6 +171,35 @@
     Object.entries(coordinates).forEach(([key, coord]) => {
       addMarker(coord[0], coord[1], key);
     });
+
+    let eventMarkers = [];
+
+    function showEventPins() {
+      eventData.forEach(event => {
+        const el = document.createElement('div');
+        el.className = 'event-marker';
+        el.style.width = '40px';
+        el.style.height = '40px';
+        el.style.backgroundImage = 'url("images/event_pin.png")';
+        el.style.backgroundSize = 'contain';
+        el.style.cursor = 'pointer';
+
+        el.addEventListener('click', () => {
+          alert(`${event.title}\n${event.date}\n${event.description}`);
+        });
+
+        const marker = new maplibregl.Marker(el)
+          .setLngLat([event.lng, event.lat])
+          .addTo(map);
+
+        eventMarkers.push(marker);
+      });
+    }
+
+    function hideEventPins() {
+      eventMarkers.forEach(m => m.remove());
+      eventMarkers = [];
+    }
 
     function showInfo(countryKey) {
       const panel = document.getElementById('infoPanel');
@@ -448,7 +245,6 @@
 
         container.innerHTML += `
           <div class="slide">
-            <img src="${d.image}" alt="${d.breed}">
             <div class="slide-content">
               <div class="breed-title">${d.breed}</div>
               <div>サイズ：${d.size}</div>
@@ -456,9 +252,10 @@
               <div>${d.description}</div>
               ${lineageMap[d.breed] ? `<button onclick="handleLineage('${d.breed}')">どの犬の派生？</button>` : ''}
             </div>
-          </div>`;
+        </div>`;
       });
     }
+
 
     document.getElementById('sizeFilter').addEventListener('change', renderSlides);
     document.getElementById('groupFilter').addEventListener('change', renderSlides);
@@ -602,5 +399,21 @@ function handleLineage(child) {
 
 
   </script>
+  
+
+<div id="mapCredit" style="
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(255,255,255,0.8);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  display: none;
+  z-index: 9999;
+">
+  © <a href="https://maplibre.org/" target="_blank" style="text-decoration:none;">MapLibre</a> contributors
+</div>
+
 </body>
 </html>
