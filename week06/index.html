@@ -8,6 +8,7 @@
   <title>犬の原産国マップ</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Yomogi&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 
 </head>
@@ -268,86 +269,93 @@ function hideCountryPins() {
 
 
 
-    function showEventPins() {
-      eventData.forEach(event => {
-        const el = document.createElement('div');
-        el.className = 'event-marker';
-        el.style.width = '40px';
-        el.style.height = '40px';
-        el.style.backgroundImage = 'url("eventpin.png")';
-        el.style.backgroundSize = 'contain';
-        el.style.cursor = 'pointer';
+function showEventPins() {
+  eventData.forEach(event => {
+    const el = document.createElement('div');
+    el.className = 'event-marker';
+    el.style.width = '40px';
+    el.style.height = '40px';
+    el.style.backgroundImage = 'url("eventpin.png")';
+    el.style.backgroundSize = 'contain';
+    el.style.cursor = 'pointer';
 
-        el.addEventListener('click', () => {
-          alert(`${event.title}\n${event.date}\n${event.description}`);
-        });
+    // ここでイベント詳細を表示！
+    el.addEventListener('click', () => {
+      showEventDetail(event); // ← ちゃんとeventオブジェクトを渡す✨
+    });
 
-        const marker = new maplibregl.Marker(el)
-          .setLngLat([event.lng, event.lat])
-          .addTo(map);
+    const marker = new maplibregl.Marker(el)
+      .setLngLat([event.lng, event.lat])
+      .addTo(map);
 
-        eventMarkers.push(marker);
-      });
-    }
+    eventMarkers.push(marker);
+  });
+}
 
     function hideEventPins() {
       eventMarkers.forEach(m => m.remove());
       eventMarkers = [];
     }
 
-    function showInfo(countryKey) {
-      const panel = document.getElementById('infoPanel');
-      panel.classList.add('active');
-      panel.dataset.country = countryKey;
+function showInfo(countryKey) {
+  const panel = document.getElementById('infoPanel');
+  panel.classList.add('active');
+  panel.dataset.country = countryKey;
 
-      renderSlides(); // スライド表示
 
   // 特定の国ごとの犬イラストを表示
-const dogImagesByCountry = {
-  japan: 'dogImages/japandog.png',
-  germany: 'dogImages/germanydog.png',
-  uk: 'dogImages/ukdog.png',
-  usa: 'dogImages/usadog.png',
-  china: 'dogImages/chinadog.png',
-  russia: 'dogImages/russiadog.png',
-  switzerland: 'dogImages/switzerlandsdog.png',
-  mexico: 'dogImages/mexicodog.png',
-  scotland: 'dogImages/scotlanddog.png',
-  australia: 'dogImages/australiadog.png',
-  canada: 'dogImages/canadadog.png',
-  france: 'dogImages/francedog.png',
-  croatia: 'dogImages/croatiasdog.png',
-  tibet: 'dogImages/tibetdog.png',
-  hungary: 'dogImages/hungarydog.png',
-  ireland: 'dogImages/irelanddog.png',
-  netherlands: 'dogImages/netherlandsdog.png'
-};
+  const dogImagesByCountry = {
+    japan: 'dogImages/japandog.png',
+    germany: 'dogImages/germanydog.png',
+    uk: 'dogImages/ukdog.png',
+    usa: 'dogImages/usadog.png',
+    china: 'dogImages/chinadog.png',
+    russia: 'dogImages/russiadog.png',
+    switzerland: 'dogImages/switzerlandsdog.png',
+    mexico: 'dogImages/mexicodog.png',
+    scotland: 'dogImages/scotlanddog.png',
+    australia: 'dogImages/australiadog.png',
+    canada: 'dogImages/canadadog.png',
+    france: 'dogImages/francedog.png',
+    croatia: 'dogImages/croatiasdog.png',
+    tibet: 'dogImages/tibetdog.png',
+    hungary: 'dogImages/hungarydog.png',
+    ireland: 'dogImages/irelanddog.png',
+    netherlands: 'dogImages/netherlandsdog.png'
+  };
 
-      const japanDogImage = document.getElementById('japanDogImage');
-      const imageFile = dogImagesByCountry[countryKey];
+  const japanDogImage = document.getElementById('japanDogImage');
+  const imageFile = dogImagesByCountry[countryKey];
 
-      if (imageFile) {
-        japanDogImage.querySelector('img').src = imageFile;
-        japanDogImage.style.display = 'block';
-      } else {
-        japanDogImage.style.display = 'none';
-      }
+  if (imageFile) {
+    japanDogImage.querySelector('img').src = imageFile;
+    japanDogImage.style.display = 'block';
+  } else {
+    japanDogImage.style.display = 'none';
+  }
 
-        renderSlides(); // スライド表示（既存）
-      };
+  // ここで1回だけ呼ぶ
+  renderSlides();
+}
 
 function renderSlides() {
+  console.log('renderSlides called');
   const key = document.getElementById('infoPanel').dataset.country;
   const dogs = dogData[key]?.dogs || [];
+  console.log(`国: ${key}、犬種数: ${dogs.length}`);
+
   const container = document.getElementById('slidesContainer');
   const size = document.getElementById('sizeFilter').value;
   const group = document.getElementById('groupFilter').value;
   container.innerHTML = `<div class="country-title">${dogData[key]?.country}</div>`;
-  dogs.filter(d => (!size || d.size === size) && (!group || d.group === group)).forEach(d => {
+
+  const filteredDogs = dogs.filter(d => (!size || d.size === size) && (!group || d.group === group));
+
+  filteredDogs.forEach(d => {
     container.innerHTML += `
       <div class="slide">
         <div class="slide-content">
-          <div class="breed-title">${d.breed}</div>
+          <div class="breed-title clickable-dog" data-breed="${d.breed}">${d.breed}</div>
           <div>サイズ：${d.size}</div>
           <div>グループ：${d.group}</div>
           <div>${d.description}</div>
@@ -355,7 +363,20 @@ function renderSlides() {
         </div>
       </div>`;
   });
+
+  console.log(`フィルター後の犬種数: ${filteredDogs.length}`);
+
+  // クリックイベントを犬種名に付ける
+  const clickableDogs = document.querySelectorAll('.clickable-dog');
+  console.log('clickableDogs count:', clickableDogs.length);
+  clickableDogs.forEach(el => {
+    el.addEventListener('click', () => {
+      console.log('clicked:', el.dataset.breed);
+      openGalleryPanel(el.dataset.breed);
+    });
+  });
 }
+
 
 
     document.getElementById('sizeFilter').addEventListener('change', renderSlides);
@@ -503,6 +524,80 @@ function handleLineage(child) {
 
 
 
+function showEventDetail(event) {
+  const overlay = document.getElementById('eventDetailOverlay');
+  const content = document.getElementById('eventDetailContent');
+
+  content.innerHTML = `
+    <h3>${event.title}</h3>
+    <p> ${event.date}</p>
+    <p>${event.description}</p>
+  `;
+
+  overlay.style.display = 'flex';
+}
+
+let dogGalleryModal, galleryBreedTitle, uploadImagesInput, galleryImagesContainer, closeGalleryBtn;
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  dogGalleryModal = document.getElementById('dogGalleryModal');
+  galleryBreedTitle = document.getElementById('galleryBreedTitle');
+  uploadImagesInput = document.getElementById('uploadImages');
+  galleryImagesContainer = document.getElementById('galleryImages');
+  closeGalleryBtn = document.getElementById('closeGalleryBtn');
+
+  closeGalleryBtn.addEventListener('click', () => {
+    dogGalleryModal.style.display = 'none';
+  });
+
+  uploadImagesInput.addEventListener('change', e => {
+    const files = Array.from(e.target.files);
+    if (!uploadedImages[currentBreed]) {
+      uploadedImages[currentBreed] = [];
+    }
+    uploadedImages[currentBreed].push(...files);
+    renderGalleryImages();
+    uploadImagesInput.value = '';
+  });
+
+  dogGalleryModal.addEventListener('click', e => {
+    if (e.target === dogGalleryModal) {
+      dogGalleryModal.style.display = 'none';
+    }
+  });
+});
+
+
+let currentBreed = '';
+let uploadedImages = {}; // 犬種ごとのアップロード画像保存
+
+function openGalleryPanel(breed) {
+  console.log('openGalleryPanel called for breed:', breed);
+  currentBreed = breed;
+  galleryBreedTitle.textContent = breed + ' の画集';
+  dogGalleryModal.style.display = 'flex';
+  renderGalleryImages();
+}
+
+function renderGalleryImages() {
+  galleryImagesContainer.innerHTML = '';
+  if (uploadedImages[currentBreed]) {
+    uploadedImages[currentBreed].forEach(fileOrUrl => {
+      const img = document.createElement('img');
+      if (typeof fileOrUrl === 'string') {
+        img.src = fileOrUrl;
+      } else {
+        img.src = URL.createObjectURL(fileOrUrl);
+      }
+      galleryImagesContainer.appendChild(img);
+    });
+  }
+}
+
+
+
+
   </script>
   
 
@@ -518,6 +613,22 @@ function handleLineage(child) {
   z-index: 9999;
 ">
   © <a href="https://maplibre.org/" target="_blank" style="text-decoration:none;">MapLibre</a> contributors
+</div>
+
+<div id="eventDetailOverlay" class="overlay">
+  <div class="event-detail-modal">
+    <button class="close-modal">✖</button>
+    <div id="eventDetailContent"></div>
+  </div>
+</div>
+
+<div id="dogGalleryModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <button id="closeGalleryBtn" class="close-modal">✖</button>
+    <h2 id="galleryBreedTitle"></h2>
+    <input type="file" id="uploadImages" accept="image/*" multiple />
+    <div id="galleryImages" class="gallery-images"></div>
+  </div>
 </div>
 
 </body>
