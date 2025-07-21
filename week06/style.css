@@ -154,7 +154,7 @@ html, body {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  z-index: 0; /* 地図のピンやUIより下にしたいなら数値を下げてください */
+  z-index: 1; /* 地図のピンやUIより下にしたいなら数値を下げてください */
   display: none; /* 初期は非表示 */
   pointer-events: none; /* イラストがUIの邪魔をしないように */
 }
