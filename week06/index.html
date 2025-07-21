@@ -63,14 +63,15 @@
     <img src="japandog.png" alt="Japan Dog Design">
   </div>
 
-  <div id="introPanel">
-    <div class="intro-content">
-      <h2>犬マップへようこそ！</h2>
-      <p>世界各地の犬の品種を地図上で探すことができます。</p>
-      <p>ピンをクリックすると、その国の犬種が表示されます。</p>
-      <button id="closeIntro">閉じる</button>
-    </div>
+<div id="introPanel">
+  <div class="intro-content">
+    <h2>🐶 犬マップへようこそ！</h2>
+    <p>世界各地の犬の品種を地図上で探すことができます。</p>
+    <p>📍 ピンをクリックすると、その国の代表的な犬種が表示されます。</p>
+    <p>📸 犬種名をクリックすると、その犬種の <strong>画集</strong>（ギャラリー）を見ることができます。</p>
+    <button id="closeIntro">閉じる</button>
   </div>
+</div>
 
   <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
 
@@ -547,6 +548,12 @@ document.addEventListener('DOMContentLoaded', () => {
   galleryImagesContainer = document.getElementById('galleryImages');
   closeGalleryBtn = document.getElementById('closeGalleryBtn');
 
+  // 保存されていた画像データを復元（localStorageから）
+  const storedImages = localStorage.getItem('uploadedImages');
+  if (storedImages) {
+    uploadedImages = JSON.parse(storedImages);
+  }
+
   closeGalleryBtn.addEventListener('click', () => {
     dogGalleryModal.style.display = 'none';
   });
@@ -556,7 +563,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!uploadedImages[currentBreed]) {
       uploadedImages[currentBreed] = [];
     }
-    uploadedImages[currentBreed].push(...files);
+
+    // FileをURLに変換して保存（localStorageに保存できるように）
+    const fileURLs = files.map(file => URL.createObjectURL(file));
+    uploadedImages[currentBreed].push(...fileURLs);
+
+    // localStorageに保存（JSON文字列化）
+    localStorage.setItem('uploadedImages', JSON.stringify(uploadedImages));
+
     renderGalleryImages();
     uploadImagesInput.value = '';
   });
@@ -583,18 +597,65 @@ function openGalleryPanel(breed) {
 function renderGalleryImages() {
   galleryImagesContainer.innerHTML = '';
   if (uploadedImages[currentBreed]) {
-    uploadedImages[currentBreed].forEach(fileOrUrl => {
+    uploadedImages[currentBreed].forEach((fileOrUrl, index) => {
+      const imgWrapper = document.createElement('div');
+      imgWrapper.style.position = 'relative';
+      imgWrapper.style.display = 'inline-block';
+
       const img = document.createElement('img');
-      if (typeof fileOrUrl === 'string') {
-        img.src = fileOrUrl;
-      } else {
-        img.src = URL.createObjectURL(fileOrUrl);
-      }
-      galleryImagesContainer.appendChild(img);
+      img.src = fileOrUrl;
+
+      img.style.objectFit = 'contain';
+      img.style.height = 'auto';
+      
+      img.style.margin = '5px';
+      img.style.borderRadius = '10px';
+      img.style.boxShadow = '0 2px 6px rgba(0,0,0,0.2)';
+      img.style.cursor = 'zoom-in';  // 拡大表示を示すカーソル
+
+      // 画像クリックで全画面表示
+      img.addEventListener('click', () => {
+        const preview = document.getElementById('imagePreview');
+        preview.src = fileOrUrl;
+        document.getElementById('imagePreviewOverlay').style.display = 'flex';
+      });
+
+      // 削除ボタン作成
+      const deleteBtn = document.createElement('button');
+      deleteBtn.innerText = '×';
+      deleteBtn.style.position = 'absolute';
+      deleteBtn.style.top = '5px';
+      deleteBtn.style.right = '5px';
+      deleteBtn.style.background = 'rgba(255, 0, 0, 0.7)';
+      deleteBtn.style.border = 'none';
+      deleteBtn.style.color = 'white';
+      deleteBtn.style.fontWeight = 'bold';
+      deleteBtn.style.borderRadius = '50%';
+      deleteBtn.style.width = '24px';
+      deleteBtn.style.height = '24px';
+      deleteBtn.style.cursor = 'pointer';
+      deleteBtn.style.zIndex = '10';
+
+      deleteBtn.addEventListener('click', () => {
+        uploadedImages[currentBreed].splice(index, 1);
+        localStorage.setItem('uploadedImages', JSON.stringify(uploadedImages));
+        renderGalleryImages();
+      });
+
+      imgWrapper.appendChild(img);
+      imgWrapper.appendChild(deleteBtn);
+      galleryImagesContainer.appendChild(imgWrapper);
     });
   }
 }
 
+// 追加: 全画面表示オーバーレイクリックで閉じる処理
+document.getElementById('imagePreviewOverlay').addEventListener('click', () => {
+  const overlay = document.getElementById('imagePreviewOverlay');
+  const preview = document.getElementById('imagePreview');
+  overlay.style.display = 'none';
+  preview.src = '';
+});
 
 
 
@@ -623,11 +684,32 @@ function renderGalleryImages() {
 </div>
 
 <div id="dogGalleryModal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <button id="closeGalleryBtn" class="close-modal">✖</button>
-    <h2 id="galleryBreedTitle"></h2>
-    <input type="file" id="uploadImages" accept="image/*" multiple />
-    <div id="galleryImages" class="gallery-images"></div>
+  <div class="modal-content" style="padding: 20px; position: relative; max-width: 600px; margin: auto; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+    <button id="closeGalleryBtn" class="close-modal" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 24px; cursor: pointer;">✖</button>
+    <h2 id="galleryBreedTitle" style="text-align:center; margin-bottom: 20px;">犬種の画集</h2>
+    
+    <div class="upload-container" style="text-align: center; margin-bottom: 20px;">
+      <label for="uploadImages" class="upload-btn" style="
+        display: inline-block;
+        padding: 12px 24px;
+        background: #ff99cc;
+        color: white;
+        font-weight: bold;
+        border-radius: 25px;
+        cursor: pointer;
+        user-select: none;
+        font-size: 18px;
+        box-shadow: 0 4px 6px rgba(255, 153, 204, 0.4);
+        transition: background 0.3s ease;
+      " onmouseover="this.style.background='#ff66b2'" onmouseout="this.style.background='#ff99cc'">
+        📸 写真を選ぶ
+      </label>
+      <input type="file" id="uploadImages" accept="image/*" multiple style="display: none;" />
+    </div>
+
+    <div id="galleryImages" class="gallery-images" style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+      <!-- アップロード画像がここに表示されます -->
+    </div>
   </div>
 </div>
 
