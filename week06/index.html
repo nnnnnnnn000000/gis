@@ -336,30 +336,26 @@ const dogImagesByCountry = {
         renderSlides(); // スライド表示（既存）
       };
 
-    function renderSlides() {
-      const key = document.getElementById('infoPanel').dataset.country;
-      const dogs = dogData[key]?.dogs || [];
-      const container = document.getElementById('slidesContainer');
-      const size = document.getElementById('sizeFilter').value;
-      const group = document.getElementById('groupFilter').value;
-      container.innerHTML = `<div class="country-title">${dogData[key]?.country}</div>`;
-      dogs.filter(d => (!size || d.size === size) && (!group || d.group === group)).forEach(d => {
-        const showLineageBtn = (lineageMap[d.breed] && d.group !== "原始の犬/スピッツ")
-          ? `<button onclick="handleLineage('${d.breed}')">どの犬の派生？</button>`
-          : '';
-
-        container.innerHTML += `
-          <div class="slide">
-            <div class="slide-content">
-              <div class="breed-title">${d.breed}</div>
-              <div>サイズ：${d.size}</div>
-              <div>グループ：${d.group}</div>
-              <div>${d.description}</div>
-              ${lineageMap[d.breed] ? `<button onclick="handleLineage('${d.breed}')">どの犬の派生？</button>` : ''}
-            </div>
-        </div>`;
-      });
-    }
+function renderSlides() {
+  const key = document.getElementById('infoPanel').dataset.country;
+  const dogs = dogData[key]?.dogs || [];
+  const container = document.getElementById('slidesContainer');
+  const size = document.getElementById('sizeFilter').value;
+  const group = document.getElementById('groupFilter').value;
+  container.innerHTML = `<div class="country-title">${dogData[key]?.country}</div>`;
+  dogs.filter(d => (!size || d.size === size) && (!group || d.group === group)).forEach(d => {
+    container.innerHTML += `
+      <div class="slide">
+        <div class="slide-content">
+          <div class="breed-title">${d.breed}</div>
+          <div>サイズ：${d.size}</div>
+          <div>グループ：${d.group}</div>
+          <div>${d.description}</div>
+          ${lineageMap[d.breed] && d.group !== "原始の犬/スピッツ" ? `<button class="lineage-btn" onclick="handleLineage('${d.breed}')">🐾 どの犬の派生？</button>` : ''}
+        </div>
+      </div>`;
+  });
+}
 
 
     document.getElementById('sizeFilter').addEventListener('change', renderSlides);
@@ -432,7 +428,7 @@ function drawFootprints(fromCoord, toCoord) {
     el.style.position = 'absolute';
     el.style.transformOrigin = 'center';
     el.style.transform = `rotate(${angle}deg)`;
-    el.style.zIndex = 2000;
+    el.style.zIndex = 10;
     el.style.pointerEvents = 'none';
 
     const marker = new maplibregl.Marker(el)
@@ -499,8 +495,12 @@ function handleLineage(child) {
 
     showInfo(originKey);
     showLineageInfo(child, parent);
+  } else {
+    // 親情報がない場合も同じようなオーバーレイ表示をするだけ
+    showLineageInfo(child, parent);
   }
 }
+
 
 
   </script>
