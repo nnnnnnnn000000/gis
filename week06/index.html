@@ -575,9 +575,26 @@ document.addEventListener('DOMContentLoaded', () => {
     uploadImagesInput.value = '';
   });
 
+  // ✅ ギャラリー背景クリックで閉じる
   dogGalleryModal.addEventListener('click', e => {
     if (e.target === dogGalleryModal) {
       dogGalleryModal.style.display = 'none';
+    }
+  });
+
+  // ✅ ✖ボタンでイベント詳細パネルを閉じる
+  const eventCloseBtn = document.querySelector('#eventDetailOverlay .close-modal');
+  if (eventCloseBtn) {
+    eventCloseBtn.addEventListener('click', () => {
+      document.getElementById('eventDetailOverlay').style.display = 'none';
+    });
+  }
+
+  // ✅ 背景クリックでイベント詳細を閉じる
+  const eventOverlay = document.getElementById('eventDetailOverlay');
+  eventOverlay.addEventListener('click', (e) => {
+    if (e.target === eventOverlay) {
+      eventOverlay.style.display = 'none';
     }
   });
 });
